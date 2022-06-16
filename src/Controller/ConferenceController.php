@@ -15,10 +15,10 @@ class ConferenceController extends AbstractController
             <<<EOF
             <html>
                 <body>
-                <img src="/images/under-construction.gif" />
-            </body>
+                    <img src="/images/under-construction.gif" />
+                </body>
             </html>
             EOF       
-        );
+        );       
     }
-}
+}       

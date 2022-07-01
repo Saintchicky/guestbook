@@ -6,8 +6,12 @@ use App\Repository\ConferenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
 
 #[ORM\Entity(repositoryClass: ConferenceRepository::class)]
+#[UniqueEntity('slug')]
 class Conference
 {
     #[ORM\Id]
@@ -27,6 +31,9 @@ class Conference
     #[ORM\OneToMany(mappedBy: 'conference', targetEntity: Comment::class, orphanRemoval: true)]
     private $comment;
 
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    private $slug;
+
     public function __construct()
     {
         $this->comment = new ArrayCollection();
@@ -39,7 +46,16 @@ class Conference
     {
         return $this->id;
     }
-
+    // permet d'analyser le slug pr les é ou autres
+    /* Générer un slug qui se lit bien dans une URL (où tout ce qui n'est pas des caractères ASCII doit être encodé) 
+    est une tâche difficile, surtout pour les langues autres que l'anglais. 
+    Comment convertir é en e par exemple ? */
+    public function computeSlug(SluggerInterface $slugger)
+    {
+        if (!$this->slug || '-' === $this->slug) {
+            $this->slug = (string) $slugger->slug((string) $this)->lower();
+        }
+    }
     public function getCity(): ?string
     {
         return $this->city;
@@ -102,6 +118,18 @@ class Conference
                 $comment->setConference(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
 
         return $this;
     }

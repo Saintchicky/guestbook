@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\PrePersist;
 use App\Repository\CommentRepository;
@@ -17,12 +18,15 @@ class Comment
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
     private $author;
 
     #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank]
     private $text;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
     private $email;
 
     #[ORM\Column(type: 'datetime_immutable')]

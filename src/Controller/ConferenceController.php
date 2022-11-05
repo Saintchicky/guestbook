@@ -60,11 +60,9 @@ class ConferenceController extends AbstractController
     {
         $comment = new Comment();
         $form = $this->createForm(CommentFormType::class, $comment);
-
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $comment->setConference($conference);
-
             if ($photo = $form['photo']->getData()) {
                 $filename = bin2hex(random_bytes(6)).'.'.$photo->guessExtension();
                 try {
@@ -77,7 +75,7 @@ class ConferenceController extends AbstractController
 
             $this->entityManager->persist($comment);
             $this->entityManager->flush();
-            // api test spam comment
+
             $context = [
                 'user_ip' => $request->getClientIp(),
                 'user_agent' => $request->headers->get('user-agent'),
@@ -96,10 +94,11 @@ class ConferenceController extends AbstractController
         if ($form->isSubmitted()) {
             $notifier->send(new Notification('Can you check your submission? There are some problems with it.', ['browser']));
         }
-        
+
         $offset = max(0, $request->query->getInt('offset', 0));
         $paginator = $commentRepository->getCommentPaginator($conference, $offset);
-        return new Response($this->render('conference/show.html.twig', [
+
+        return new Response($this->twig->render('conference/show.html.twig', [
             'conference' => $conference,
             'comments' => $paginator,
             'previous' => $offset - CommentRepository::PAGINATOR_PER_PAGE,

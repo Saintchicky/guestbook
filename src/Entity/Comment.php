@@ -7,22 +7,36 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\PrePersist;
 use App\Repository\CommentRepository;
 use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    collectionOperations: ['get' => ['normalization_context' => ['groups' => 'comment:list']]],
+    itemOperations: ['get' => ['normalization_context' => ['groups' => 'comment:item']]],
+    order: ['createdAt' => 'DESC'],
+    paginationEnabled: false,
+)]
+#[ApiFilter(SearchFilter::class, properties: ['conference' => 'exact'])]
 class Comment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['comment:list', 'comment:item'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
+    #[Groups(['comment:list', 'comment:item'])]
     private $author;
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
+    #[Groups(['comment:list', 'comment:item'])]
     private $text;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -30,13 +44,16 @@ class Comment
     private $email;
 
     #[ORM\Column(type: 'datetime_immutable')]
+    #[Groups(['comment:list', 'comment:item'])]
     private $createdAt;
 
     #[ORM\ManyToOne(targetEntity: Conference::class, inversedBy: 'comment')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['comment:list', 'comment:item'])]
     private $conference;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['comment:list', 'comment:item'])]
     private $photoFilename;
 
     #[ORM\Column(type: 'string', length: 255, options: ["default" => "submitted"])]

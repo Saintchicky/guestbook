@@ -2,15 +2,13 @@
 
 namespace App\Entity;
 
-use Symfony\Component\Validator\Constraints as Assert;
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\PrePersist;
-use App\Repository\CommentRepository;
-use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Repository\CommentRepository;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -41,6 +39,8 @@ class Comment
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
+    #[Assert\Email]
+    #[Groups(['comment:list', 'comment:item'])]
     private $email;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -63,6 +63,7 @@ class Comment
     {
         return (string) $this->getEmail();
     }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -108,12 +109,18 @@ class Comment
     {
         return $this->createdAt;
     }
-    #[ORM\PrePersist]
-    public function setCreatedAt(): self
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $createdAt;
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue()
+    {
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getConference(): ?Conference

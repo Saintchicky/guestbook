@@ -2,26 +2,26 @@
 
 namespace App\Tests\Controller;
 
-use Symfony\Component\Panther\PantherTestCase;
+use App\Repository\CommentRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-
-class ConferenceControllerTest extends PantherTestCase
+class ConferenceControllerTest extends WebTestCase
 {
-    public function testIndex(): void
+    public function testIndex()
     {
-        $client = static::createPantherClient(['external_base_uri' => $_SERVER['SYMFONY_PROJECT_DEFAULT_ROUTE_URL']]);
-        $crawler = $client->request('GET', '/');
+        $client = static::createClient();
+        $client->request('GET', '/en/');
         // permet de voir ce qui est recupéré en structure html
-        echo($client->getResponse());
         $this->assertResponseIsSuccessful();
         // selectionner une balise avec le texte contenu
-        $this->assertSelectorTextContains('h1', 'Guestbook');
+        $this->assertSelectorTextContains('h2', 'Give your feedback');
     }
 
     public function testCommentSubmission()
     {
-        $client = static::createPantherClient(['external_base_uri' => $_SERVER['SYMFONY_PROJECT_DEFAULT_ROUTE_URL']]);
-        $client->request('GET', '/conference/amsterdam-2019');
+        $client = static::createClient();
+        $client->request('GET', '/en/conference/amsterdam-2019');
         $client->submitForm('Submit', [
             'comment_form[author]' => 'Fabien',
             'comment_form[text]' => 'Some feedback from an automated functional test',
@@ -29,8 +29,8 @@ class ConferenceControllerTest extends PantherTestCase
             'comment_form[photo]' => dirname(__DIR__, 2).'/public/images/under-construction.gif',
         ]);
         $this->assertResponseRedirects();
-        
-         // simulate comment validation
+
+        // simulate comment validation
         $comment = self::getContainer()->get(CommentRepository::class)->findOneByEmail($email);
         $comment->setState('published');
         self::getContainer()->get(EntityManagerInterface::class)->flush();
@@ -41,17 +41,16 @@ class ConferenceControllerTest extends PantherTestCase
 
     public function testConferencePage()
     {
-        $client = static::createPantherClient(['external_base_uri' => $_SERVER['SYMFONY_PROJECT_DEFAULT_ROUTE_URL']]);
-        $crawler = $client->request('GET', '/');
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/en/');
 
         $this->assertCount(2, $crawler->filter('h4'));
 
         $client->clickLink('View');
-        echo($client->getResponse());
 
         $this->assertPageTitleContains('Amsterdam');
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h2', 'Amsterdam 2019');
-        $this->assertSelectorExists('div:contains("There are 1 comments")');
+        $this->assertSelectorExists('div:contains("There is one comment")');
     }
 }
